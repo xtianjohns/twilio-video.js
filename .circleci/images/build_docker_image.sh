@@ -41,7 +41,7 @@ docker push twilio/twilio-video-browsers:${BROWSER}-${BVER}
 echo pushed > ./logs/pushed.txt
 SLACK_MESSAGE_TEXT="Updated: ${BROWSER}-${BVER} => ${NEW_VERSION}"
 CLEANEDUP_SLACK_MESSAGE_TEXT=$(echo $SLACK_MESSAGE_TEXT|tr -d '\n\r\t')
-curl -X POST -H 'Content-type: application/json' --data '{"text": '\""$CLEANEDUP_SLACK_MESSAGE_TEXT"\"'}' $SLACK_WEBHOOK
+# curl -X POST -H 'Content-type: application/json' --data '{"text": '\""$CLEANEDUP_SLACK_MESSAGE_TEXT"\"'}' $SLACK_WEBHOOK
 
 echo "========================================================="
 echo "Done Pushing browserContainer image for ${BROWSER}-${BVER}"

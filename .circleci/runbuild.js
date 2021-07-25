@@ -66,6 +66,7 @@ function generateBuildRequest(program) {
       pr_workflow: program.workflow === 'pr',
       custom_workflow: program.workflow === 'custom',
       backend_workflow: program.workflow === 'backend',
+      build_docker_workflow: program.workflow === 'build_docker',
       environment: program.environment,
       test_stability: program.test_stability,
       test_files: program.test_files
@@ -82,6 +83,10 @@ function generateBuildRequest(program) {
   } else if (program.workflow === 'backend') {
     body.branch = program.branch;
     body.parameters.tag = program.tag;
+  } else if (program.workflow === 'build_docker') {
+    body.branch = program.branch;
+    body.parameters.browser = program.browser;
+    body.parameters.bver = program.bver;
   }
 
   return { options, body };
@@ -116,7 +121,7 @@ const workflowPrompt = {
   type: 'list',
   name: 'workflow',
   message: 'Workflow:',
-  choices: ['pr', 'custom', 'backend'],
+  choices: ['pr', 'custom', 'backend', 'build_docker'],
   default: 'pr'
 };
 
@@ -161,7 +166,7 @@ const environmentCheckboxPrompt = {
 };
 
 const browserPrompt = {
-  when: (answers) => answers.workflow === 'custom',
+  when: (answers) => answers.workflow === 'build_docker',
   validate: answer => answer.length > 0,
   type: 'checkbox',
   name: 'browser',
@@ -171,7 +176,7 @@ const browserPrompt = {
 };
 
 const bverPrompt = {
-  when: (answers) => answers.workflow === 'custom',
+  when: (answers) => answers.workflow === 'build_docker',
   validate: answer => answer.length > 0,
   type: 'checkbox',
   name: 'bver',

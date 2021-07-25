@@ -25,7 +25,7 @@ RUN FIREFOX_URL="https://download.mozilla.org/?product=firefox-latest-ssl&os=lin
   && firefox --version
 
 ENV BROWSER='firefox'
-ENV BVER='stable'
+ENV BVER='unstable'
 ENV FIREFOX_BIN=/opt/firefox/firefox
 
 # Switch to user - root
