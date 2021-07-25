@@ -19,6 +19,9 @@ parameters:
   custom_workflow: # runs just one custom config.
     type: boolean
     default: false
+  build_docker_workflow:
+    type: boolean
+    default: false
   backend_workflow: # runs JS integration.
     type: boolean
     default: false
@@ -304,13 +307,7 @@ jobs:
 workflows:
   version: 2
   Build_Docker_Images_Workflow:
-    triggers:
-      - schedule:
-          cron: "0 0 * * *"
-          filters:
-            branches:
-              only:
-                - master
+    when: << pipeline.parameters.build_docker_workflow >>
     jobs:
       - Build-Docker-Test-Image:
           context: dockerhub-push
