@@ -15,7 +15,7 @@ RUN if grep -q Debian /etc/os-release && grep -q stretch /etc/os-release; then \
 #
 # install firefox
 #
-RUN FIREFOX_URL="https://download.mozilla.org/?product=firefox-latest-ssl&os=linux64&lang=en-US" \
+RUN FIREFOX_URL="https://download.mozilla.org/?product=firefox-nightly-latest-ssl&os=linux64&lang=en-US" \
   && ACTUAL_URL=$(curl -Ls -o /dev/null -w %{url_effective} $FIREFOX_URL) \
   && curl --silent --show-error --location --fail --retry 3 --output /tmp/firefox.tar.bz2 $ACTUAL_URL \
   && sudo tar -xvjf /tmp/firefox.tar.bz2 -C /opt \
@@ -25,7 +25,7 @@ RUN FIREFOX_URL="https://download.mozilla.org/?product=firefox-latest-ssl&os=lin
   && firefox --version
 
 ENV BROWSER='firefox'
-ENV BVER='unstable'
+ENV BVER='stable'
 ENV FIREFOX_BIN=/opt/firefox/firefox
 
 # Switch to user - root
