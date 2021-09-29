@@ -1,3 +1,4 @@
+
 declare module '@twilio/webrtc' {
   interface MediaStreamTrack {
     foo: string;

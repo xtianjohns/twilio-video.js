@@ -4,7 +4,11 @@
 import { MediaStreamTrack } from '@twilio/webrtc';
 import { guessBrowser, guessBrowserVersion } from '@twilio/webrtc/lib/util';
 import { EventEmitter } from 'events';
-import type { ConnectOptions } from '../tsdef/types';
+// const DefaultLog = require('./util/log');
+// import Log, * as DefaultLog from './util/log';
+import * as DefaultLog from '../tsdef/loglevel';
+import { Room } from '../tsdef/Room';
+import type { ConnectOptions, InternalConnectOptions } from '../tsdef/types';
 import createCancelableRoomPromise from './cancelableroompromise';
 import createLocalTracks from './createlocaltracks';
 import EncodingParametersImpl from './encodingparameters';
@@ -15,7 +19,6 @@ import {
   LocalVideoTrack
 } from './media/track/es5';
 import NetworkQualityConfigurationImpl from './networkqualityconfiguration';
-import Room from './room';
 import SignalingV2 from './signaling/v2';
 import {
   asLocalTrack,
@@ -26,10 +29,9 @@ import {
 import CancelablePromise from './util/cancelablepromise';
 import {
   DEFAULT_ENVIRONMENT, DEFAULT_LOGGER_NAME, DEFAULT_LOG_LEVEL, DEFAULT_REALM,
-  DEFAULT_REGION, E, WS_SERVER
+  DEFAULT_REGION, typeErrors, WS_SERVER
 } from './util/constants';
 import EventObserver from './util/eventobserver';
-// const DefaultLog: Log from './util/log';
 import { validateBandwidthProfile } from './util/validate';
 
 const safariVersion: boolean | {major: number, minor: number} | undefined = guessBrowser() === 'safari' && guessBrowserVersion();
@@ -184,12 +186,12 @@ const deprecatedBandwidthProfileOptions = new Set([
  *   console.log('Could not connect to the Room:', error.message);
  * });
  */
-function connect(token: string, options: ConnectOptions) {
+function connect(token: string, options?: InternalConnectOptions) {
   if (typeof options === 'undefined') {
     options = {};
   }
   if (!isNonArrayObject(options)) {
-    return CancelablePromise.reject(E.INVALID_TYPE('options', 'object'));
+    return CancelablePromise.reject(typeErrors.INVALID_TYPE('options', 'object'));
   }
 
   const Log = options.Log || DefaultLog;
@@ -198,7 +200,7 @@ function connect(token: string, options: ConnectOptions) {
   const logLevels = buildLogLevels(logLevel);
   const logComponentName = `[connect #${++connectCalls}]`;
 
-  let log;
+  let log: typeof Log;
   try {
     log = new Log('default', logComponentName, logLevels, loggerName);
   } catch (error) {
@@ -243,7 +245,7 @@ function connect(token: string, options: ConnectOptions) {
   const eventObserver = new EventObserver(Date.now(), log, options.eventListener);
   options = Object.assign({ eventObserver, wsServer }, options);
 
-  options.log = log;
+  options.Log = log;
 
   // NOTE(mroberts): Print the Safari warning once if the log-level is at least
   // "warn", i.e. neither "error" nor "off".
@@ -263,7 +265,7 @@ function connect(token: string, options: ConnectOptions) {
   }
 
   if (typeof token !== 'string') {
-    return CancelablePromise.reject(E.INVALID_TYPE('token', 'string'));
+    return CancelablePromise.reject(typeErrors.INVALID_TYPE('token', 'string'));
   }
 
   // NOTE(mmalavalli): The Room "name" in "options" was being used
@@ -274,7 +276,7 @@ function connect(token: string, options: ConnectOptions) {
 
   if ('tracks' in options) {
     if (!Array.isArray(options.tracks)) {
-      return CancelablePromise.reject(E.INVALID_TYPE('options.tracks',
+      return CancelablePromise.reject(typeErrors.INVALID_TYPE('options.tracks',
         'Array of LocalAudioTrack, LocalVideoTrack or MediaStreamTrack'));
     }
     try {
@@ -358,12 +360,12 @@ function connect(token: string, options: ConnectOptions) {
     createRoomSignaling.bind(null, token, options, signaling, encodingParameters, preferredCodecs),
     createRoom.bind(null, options));
 
-  cancelableRoomPromise.then(room => {
+  cancelableRoomPromise.then((room: Room) => {
     log.info('Connected to Room:', room.toString());
     log.info('Room name:', room.name);
     log.debug('Room:', room);
     return room;
-  }, error => {
+  }, (error: TypeError) => {
     if (cancelableRoomPromise._isCanceled) {
       log.info('Attempt to connect to a Room was canceled');
     } else {

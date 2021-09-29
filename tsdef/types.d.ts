@@ -1,3 +1,5 @@
+import createLocalTracks from '../lib/createlocaltracks';
+import SignalingV2 from '../lib/signaling/v2';
 import { LocalAudioTrack } from './LocalAudioTrack';
 import { LocalAudioTrackPublication } from './LocalAudioTrackPublication';
 import { LocalDataTrack } from './LocalDataTrack';
@@ -178,7 +180,7 @@ export interface ConnectOptions {
    * @deprecated use Video.Logger
    */
   loggerName?: string;
-  eventListener?: EventListener;
+  eventListener?: EventListener | null;
   iceServers?: Array<RTCIceServer>;
   iceTransportPolicy?: RTCIceTransportPolicy;
   insights?: boolean;
@@ -193,10 +195,25 @@ export interface ConnectOptions {
   /**
    * @deprecated use Video.Logger.
    */
-  logLevel?: LogLevel | LogLevels;
+  logLevel?: string | LogLevel | LogLevels;
 
   tracks?: Array<LocalTrack | MediaStreamTrack>;
   video?: boolean | CreateLocalTrackOptions;
+}
+
+export interface InternalConnectOptions extends ConnectOptions {
+  Log?: Log;
+  automaticSubscription?: boolean;
+  createLocalTracks?: typeof createLocalTracks;
+  dominantSpeaker?: boolean;
+  enableDscp?: boolean;
+  environment?: string;
+  eventListener?: EventListener | null | undefined;
+  insights?: boolean;
+  signaling?: typeof SignalingV2;
+  wsServer?: string;
+  clientTrackSwitchOffControl?: 'auto' | 'manual' | 'disabled';
+  contentPreferencesMode?: 'auto' | 'manual' | 'disabled';
 }
 
 export interface CreateLocalTracksOptions {
