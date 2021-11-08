@@ -13,6 +13,7 @@ const defaults = [
   'testStability'
 ].reduce((defaults, option) => {
   if (typeof env[option] !== 'undefined') {
+    console.log(`DEBUG_REGION: ${option} is defined: ${env[option]}`);
     Object.defineProperty(defaults, option, {
       enumerable: true,
       value: env[option]

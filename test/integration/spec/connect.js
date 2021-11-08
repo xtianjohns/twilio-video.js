@@ -281,6 +281,7 @@ describe('connect', function() {
     let sid = null;
     let token = null;
 
+    console.log(`DEBUG_REGION: defaults.regions is : ${defaults.regions}`);
     const validRegions = defaults.regions ? defaults.regions.split(',') : ['au1', 'br1', 'de1', 'ie1', 'in1', 'jp1', 'sg1', 'us1', 'us2'];
     const mediaRegions = ['without', 'gll', ...validRegions];
 
