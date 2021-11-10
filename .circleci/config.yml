@@ -348,6 +348,12 @@ workflows:
         - not:
             equal: [ auto, << pipeline.parameters.test_files >> ]
     jobs:
+      - run-network-tests:
+          context: dockerhub-pulls
+          name: Network(<< pipeline.parameters.test_stability >>) << pipeline.parameters.environment >> << pipeline.parameters.browser >> << pipeline.parameters.topology >>
+          browser: << pipeline.parameters.browser >>
+          topology: << pipeline.parameters.topology >>
+          test_stability: << pipeline.parameters.test_stability >>
       - run-integration-tests:
           context: dockerhub-pulls
           name: Integration(<< pipeline.parameters.test_stability >>) << pipeline.parameters.environment >> << pipeline.parameters.browser >>(<< pipeline.parameters.bver >>) << pipeline.parameters.topology >>
