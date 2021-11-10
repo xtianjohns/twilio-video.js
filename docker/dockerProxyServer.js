@@ -284,6 +284,7 @@ class DockerProxyServer {
   }
 
   async _runCommand(cmd) {
+    console.log('running cmd: ', cmd);
     await Promise.resolve();
     const { execSync } = require('child_process');
     const output = execSync(cmd);

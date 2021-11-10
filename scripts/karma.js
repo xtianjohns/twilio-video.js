@@ -25,6 +25,7 @@ function getTestPaths(path) {
 }
 
 function filterTests(paths) {
+  console.log('TEST_FILES:', process.env.TEST_FILES);
   if (process.env.TEST_FILES) {
     let testFiles = process.env.TEST_FILES.split('\n');
     testFiles = testFiles.map(file => resolvePath(file));
