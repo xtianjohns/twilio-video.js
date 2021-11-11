@@ -108,6 +108,7 @@
     "test:integration2": "npm run build:es5 && node --version && node ./scripts/karma.js karma/integration.conf.js",
     "test:integration3": "npm run build:es5 && node ./scripts/karma.js karma/integration.conf.js",
     "test:integration4": "npm-run-all printVersion build:es5 integration",
+    "test:quick": "node ./docker/test.js",
     "test:umd:install": "npm install puppeteer@5.5.0",
     "test:umd": "mocha ./test/umd/index.js",
     "test:crossbrowser:build:clean": "rimraf ./test/crossbrowser/lib ./test/crossbrowser/src/browser/index.js",
