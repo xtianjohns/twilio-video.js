@@ -234,6 +234,7 @@ jobs:
       BROWSER: << parameters.browser >>
       TOPOLOGY: << parameters.topology >>
       TEST_STABILITY: << parameters.test_stability >>
+      TEST_FILES: << pipeline.parameters.test_files >>
     executor: machine-executor
     steps: [network-tests]
   Framework-tests:

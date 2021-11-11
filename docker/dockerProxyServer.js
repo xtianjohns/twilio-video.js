@@ -37,7 +37,9 @@ class DockerProxyServer {
    * starts the webserver server, and starts listening for incoming requests.
    */
   async startServer() {
+    console.log('Inside startServer');
     this._originalNetworks = await this._getCurrentNetworks();
+    console.log('startServer: done with this._getCurrentNetworks');
     const express = require('express');
     const app = express();
     app.use(cors());
@@ -150,10 +152,9 @@ class DockerProxyServer {
       const output = await this._runCommand(cmd);
       const containerId = output.replace('\n', '');
       this._containerId = containerId;
-      return { containerId };
     }
-    return Promise.resolve({ containerId: this._containerId });
-
+    console.log('_getCurrentContainerId: returning: ', this._containerId);
+    return { containerId: this._containerId };
   }
 
   async _getActiveInterface() {

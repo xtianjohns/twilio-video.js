@@ -30,13 +30,13 @@ function fetchRequest(options, postData) {
           console.log(logPrefix + 'resolving');
           resolve(parsedData);
         } catch (e) {
-          console.error(logPrefix + 'rejecting:', e);
+          console.error(logPrefix + 'rejecting 1:', e);
           reject(e);
         }
       });
     });
     clientRequest.on('error', e => {
-      console.error(logPrefix + 'rejecting:', e);
+      console.error(logPrefix + 'rejecting 2:', e);
       reject(e);
     });
 
