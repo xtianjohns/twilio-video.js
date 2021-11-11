@@ -18,9 +18,9 @@ echo "directory:"
 ls -alt
 echo "Package.json version:"
 cat package.json | grep version
-echo "running tests"
-echo "test files:"
+echo "Test files:"
 echo $TEST_FILES
+echo "running tests"
 
 case ${ENVIRONMENT} in
 dev)
