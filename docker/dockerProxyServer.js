@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 'use strict';
-
+console.log('DockerProxyServer: os.userInfo:', require('os').userInfo());
 const cors = require('cors');
 const isDocker = require('is-docker')();
 const fetchRequest = require('./fetchRequest');
