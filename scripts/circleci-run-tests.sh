@@ -65,7 +65,7 @@ integration)
     export TEST_FILES=$(circleci tests glob "$PWD/test/integration/spec/**/*.js" | circleci tests split --split-by=timings)
   fi
   echo $TEST_FILES
-  npm run test:integration
+  npm run build:es5 && node ./scripts/karma.js karma/integration.conf.js
   ;;
 framework)
   echo "Testing framework"
