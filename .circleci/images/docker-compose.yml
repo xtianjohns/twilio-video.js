@@ -24,7 +24,6 @@ services:
     - TOPOLOGY
     - ENABLE_REST_API_TESTS
     - TEST_STABILITY
-    - TEST_FILES
     volumes:
       - "../../:/opt/app"
       - /var/run/docker.sock:/var/run/docker.sock

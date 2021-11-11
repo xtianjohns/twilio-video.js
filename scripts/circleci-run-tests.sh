@@ -55,11 +55,6 @@ network)
   echo "Running network tests"
   # network tets run inside a container with docker socket mapped in the container.
   echo "${DOCKER_HUB_PASSWORD}" | docker login --username "${DOCKER_HUB_USERNAME}" --password-stdin
-  if [ "${TEST_FILES}" == "auto" ]; then
-    echo "Asking circleci to pick tests based on timings..."
-    export TEST_FILES=$(circleci tests glob "$PWD/test/integration/spec/docker/**/*.js" | circleci tests split --split-by=timings)
-  fi
-  echo $TEST_FILES
   docker-compose --file=.circleci/images/docker-compose.yml run integrationTests
   ;;
 integration)
