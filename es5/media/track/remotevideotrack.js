@@ -94,6 +94,12 @@ var RemoteVideoTrack = /** @class */ (function (_super) {
             _invisibleElements: {
                 value: new WeakSet(),
             },
+            _elToPipCallbacks: {
+                value: new WeakMap(),
+            },
+            _elToPipWindows: {
+                value: new WeakMap(),
+            },
             _turnOffTimer: {
                 value: new Timeout(function () {
                     _this._setRenderHint({ enabled: false });
@@ -187,6 +193,45 @@ var RemoteVideoTrack = /** @class */ (function (_super) {
         }
         return this;
     };
+    RemoteVideoTrack.prototype._unObservePip = function (el) {
+        var pipCallbacks = this._elToPipCallbacks.get(el);
+        if (pipCallbacks) {
+            el.removeEventListener('enterpictureinpicture', pipCallbacks.onEnterPip);
+            el.removeEventListener('leavepictureinpicture', pipCallbacks.onLeavePip);
+            this._elToPipCallbacks.delete(el);
+        }
+    };
+    RemoteVideoTrack.prototype._observePip = function (el) {
+        var _this = this;
+        var pipCallbacks = this._elToPipCallbacks.get(el);
+        if (!pipCallbacks) {
+            var onEnterPip = function (event) { return _this._onEnterPip(event, el); };
+            var onLeavePip = function (event) { return _this._onLeavePip(event, el); };
+            var onResizePip = function (event) { return _this._onResizePip(event, el); };
+            el.addEventListener('enterpictureinpicture', onEnterPip);
+            el.addEventListener('leavepictureinpicture', onLeavePip);
+            this._elToPipCallbacks.set(el, { onEnterPip: onEnterPip, onLeavePip: onLeavePip, onResizePip: onResizePip });
+        }
+    };
+    RemoteVideoTrack.prototype._onEnterPip = function (event, videoEl) {
+        this._log.debug('onEnterPip');
+        var pipWindow = event.pictureInPictureWindow;
+        this._elToPipWindows.set(videoEl, pipWindow);
+        var onResizePip = this._elToPipCallbacks.get(videoEl).onResizePip;
+        pipWindow.addEventListener('resize', onResizePip);
+        maybeUpdateEnabledHint(this);
+    };
+    RemoteVideoTrack.prototype._onLeavePip = function (event, videoEl) {
+        this._log.debug('onLeavePip');
+        this._elToPipWindows.delete(videoEl);
+        var onResizePip = this._elToPipCallbacks.get(videoEl).onResizePip;
+        var pipWindow = event.pictureInPictureWindow;
+        pipWindow.removeEventListener('resize', onResizePip);
+        maybeUpdateEnabledHint(this);
+    };
+    RemoteVideoTrack.prototype._onResizePip = function () {
+        maybeUpdateDimensionHint(this);
+    };
     RemoteVideoTrack.prototype.attach = function (el) {
         var result = _super.prototype.attach.call(this, el);
         if (this._clientTrackSwitchOffControl === 'auto') {
@@ -199,6 +244,7 @@ var RemoteVideoTrack = /** @class */ (function (_super) {
         if (this._enableDocumentVisibilityTurnOff) {
             this._documentVisibilityTurnOffCleanup = this._documentVisibilityTurnOffCleanup || setupDocumentVisibilityTurnOff(this);
         }
+        this._observePip(result);
         return result;
     };
     RemoteVideoTrack.prototype.detach = function (el) {
@@ -209,6 +255,7 @@ var RemoteVideoTrack = /** @class */ (function (_super) {
             _this._intersectionObserver.unobserve(element);
             _this._resizeObserver.unobserve(element);
             _this._invisibleElements.delete(element);
+            _this._unObservePip(element);
         });
         if (this._attachments.size === 0) {
             if (this._documentVisibilityTurnOffCleanup) {
@@ -307,32 +354,39 @@ function setupDocumentVisibilityTurnOff(removeVideoTrack) {
         documentVisibilityMonitor.offVisibilityChange(1, onVisibilityChanged);
     };
 }
-function maybeUpdateEnabledHint(removeVideoTrack) {
-    if (removeVideoTrack._clientTrackSwitchOffControl !== 'auto') {
+function maybeUpdateEnabledHint(remoteVideoTrack) {
+    if (remoteVideoTrack._clientTrackSwitchOffControl !== 'auto') {
         return;
     }
-    var visibleElements = removeVideoTrack._getAllAttachedElements().filter(function (el) { return !removeVideoTrack._invisibleElements.has(el); });
-    var enabled = document.visibilityState === 'visible' && visibleElements.length > 0;
+    var visibleElements = remoteVideoTrack._getAllAttachedElements().filter(function (el) { return !remoteVideoTrack._invisibleElements.has(el); });
+    var pipWindows = remoteVideoTrack._getAllAttachedElements().filter(function (el) { return remoteVideoTrack._elToPipWindows.has(el); });
+    // even when document is invisible we may have track playing in pip window.
+    var enabled = pipWindows.length > 0 || (document.visibilityState === 'visible' && visibleElements.length > 0);
     if (enabled === true) {
-        removeVideoTrack._turnOffTimer.clear();
-        removeVideoTrack._setRenderHint({ enabled: true });
+        remoteVideoTrack._turnOffTimer.clear();
+        remoteVideoTrack._setRenderHint({ enabled: true });
     }
-    else if (!removeVideoTrack._turnOffTimer.isSet) {
+    else if (!remoteVideoTrack._turnOffTimer.isSet) {
         // set the track to be turned off after some delay.
-        removeVideoTrack._turnOffTimer.start();
+        remoteVideoTrack._turnOffTimer.start();
     }
 }
-function maybeUpdateDimensionHint(removeVideoTrack) {
-    if (removeVideoTrack._contentPreferencesMode !== 'auto') {
+function maybeUpdateDimensionHint(remoteVideoTrack) {
+    if (remoteVideoTrack._contentPreferencesMode !== 'auto') {
         return;
     }
-    var visibleElements = removeVideoTrack._getAllAttachedElements().filter(function (el) { return !removeVideoTrack._invisibleElements.has(el); });
-    if (visibleElements.length > 0) {
-        var _a = __read(visibleElements.sort(function (el1, el2) {
+    var visibleElements = remoteVideoTrack._getAllAttachedElements().filter(function (el) { return !remoteVideoTrack._invisibleElements.has(el); });
+    var pipElements = remoteVideoTrack._getAllAttachedElements().map(function (el) {
+        var pipWindow = remoteVideoTrack._elToPipWindows.get(el);
+        return pipWindow ? { clientHeight: pipWindow.height, clientWidth: pipWindow.width } : { clientHeight: 0, clientWidth: 0 };
+    });
+    var totalElements = visibleElements.concat(pipElements);
+    if (totalElements.length > 0) {
+        var _a = __read(totalElements.sort(function (el1, el2) {
             return el2.clientHeight + el2.clientWidth - el1.clientHeight - el1.clientWidth - 1;
         }), 1), _b = _a[0], clientHeight = _b.clientHeight, clientWidth = _b.clientWidth;
         var renderDimensions = { height: clientHeight, width: clientWidth };
-        removeVideoTrack._setRenderHint({ renderDimensions: renderDimensions });
+        remoteVideoTrack._setRenderHint({ renderDimensions: renderDimensions });
     }
 }
 /**
